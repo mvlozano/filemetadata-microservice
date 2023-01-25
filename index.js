@@ -1,20 +1,37 @@
-var express = require('express');
-var cors = require('cors');
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const multer = require('multer')
+const upload = multer({ dest: './files' });
 require('dotenv').config()
 
-var app = express();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use('/public', express.static(process.cwd() + '/public'));
+//Middlewares
+//Enable requests from any domain
+app.use(cors({ optionsSuccessStatus: 200 }));
+//Serving static files
+app.use(express.static('public'));
 
-app.get('/', function (req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+
+//Routing
+//Returns index page
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
 });
 
+//Returns uploaded file metadata (name, type and size)
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res, next) => {
+  const file = req.file;
+  res.json({
+    name: file.originalname,
+    type: file.mimetype,
+    size: file.size
+  });
+});
 
-
-
-const port = process.env.PORT || 3000;
-app.listen(port, function () {
-  console.log('Your app is listening on port ' + port)
+//Starts listening for requests
+app.listen(PORT,  () => {
+  console.log('Your app is listening on port:', PORT)
 });
